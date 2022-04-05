@@ -1,0 +1,22 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+@if (User.Identity?.IsAuthenticated ?? false)
+{
+    <ul>
+        @foreach (var claim in User.Claims)
+        {
+            <li>@claim.Type - @claim.Value</li>
+        }
+    </ul>
+    <a asp-page="Logout">Logout</a>
+}
+else
+{
+    <strong>Not logged in.</strong>
+    <a asp-page="LoginAz">Login as Student/Employee</a>
+    <a asp-page="LoginPa">Login as Parent</a>
+}
