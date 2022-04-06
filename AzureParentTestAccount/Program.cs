@@ -9,14 +9,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages(options =>
     {
         options.Conventions.AuthorizePage("/Secret");
-        options.Conventions.AuthorizePage("/LoginPa");
-        options.Conventions.AuthorizePage("/LoginAz");
+        options.Conventions.AuthorizePage("/LoginPa", "loginPa");
+        options.Conventions.AuthorizePage("/LoginAz", "loginAz");
     })
     .Services
     .AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = "AzureOrParent";
+        options.DefaultChallengeScheme = "picker";
     })
     .AddCookie()
     .AddOpenIdConnect("azure", options =>
@@ -63,13 +63,21 @@ builder.Services.AddRazorPages(options =>
     {
         options.PickAuthenticationUrl = "/Pick";
     })
-    .AddPolicyScheme("AzureOrParent", "AzureOrParent", options =>
+    .Services
+    .AddAuthorization(options =>
     {
-        options.ForwardDefaultSelector = context =>
-            context.Request.Path.StartsWithSegments("/LoginAz") ? "azure"
-            : context.Request.Path.StartsWithSegments("/LoginPa") ? "parent"
-            : "picker";
-    });
+        options.AddPolicy("loginAz", policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.AddAuthenticationSchemes("azure");
+        });
+        options.AddPolicy("loginPa", policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.AddAuthenticationSchemes("parent");
+        });
+    })
+    ;
 
 
 var app = builder.Build();
